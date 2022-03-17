@@ -23,7 +23,7 @@ type LoggerConfig struct {
 }
 
 func Logger(l logr.Logger) gin.HandlerFunc {
-	return LoggerWithConfig(l, LoggerConfig{TimeFormat: time.RFC3339})
+	return LoggerWithConfig(l, LoggerConfig{})
 }
 
 func LoggerWithConfig(l logr.Logger, conf LoggerConfig) gin.HandlerFunc {
@@ -64,7 +64,6 @@ func LoggerWithConfig(l logr.Logger, conf LoggerConfig) gin.HandlerFunc {
 				l.Error(c.Errors.Last(), strings.Join(c.Errors.Errors(), " "))
 			} else {
 				fields := []interface{}{
-					"time", end.Format(conf.TimeFormat),
 					"status", c.Writer.Status(),
 					"method", c.Request.Method,
 					"path", path,
@@ -72,6 +71,9 @@ func LoggerWithConfig(l logr.Logger, conf LoggerConfig) gin.HandlerFunc {
 					"ip", c.ClientIP(),
 					"user-agent", c.Request.UserAgent(),
 					"latency", latency,
+				}
+				if conf.TimeFormat != "" {
+					fields = append(fields, "time", "time", end.Format(conf.TimeFormat))
 				}
 				l.V(conf.LogV).Info(path, fields...)
 			}

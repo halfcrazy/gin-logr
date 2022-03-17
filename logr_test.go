@@ -4,9 +4,10 @@ import (
 	"bytes"
 	"errors"
 	"github.com/gin-gonic/gin"
-	"github.com/go-logr/stdr"
+	"github.com/go-logr/zapr"
 	"github.com/stretchr/testify/assert"
-	stdlog "log"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -16,7 +17,14 @@ func TestLogger(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
 	buffer := new(bytes.Buffer)
-	log := stdr.New(stdlog.New(buffer, "", 0))
+	zapLog := zap.New(
+		zapcore.NewCore(
+			zapcore.NewConsoleEncoder(zap.NewDevelopmentEncoderConfig()),
+			zapcore.AddSync(buffer),
+			zapcore.DebugLevel,
+		),
+	)
+	log := zapr.NewLogger(zapLog)
 	r := gin.New()
 	r.Use(Logger(log))
 	r.GET("/example", func(c *gin.Context) {})
